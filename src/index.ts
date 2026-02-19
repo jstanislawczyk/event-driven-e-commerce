@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 
 import { createApp } from './app.ts';
-import { dataSource } from './modules/appointments/infrastructure/database/data-source.ts';
+import { dataSource } from './modules/ordering/infrastructure/database/data-source.ts';
 
 dataSource
   .initialize()
