@@ -1,0 +1,39 @@
+{
+  "name": "event-drive-e-commerce",
+  "version": "1.0.0",
+  "description": "Example CQRS and Event Sourcing application for e-commerce built with TypeScript",
+  "keywords": [
+    "cqrs",
+    "event-sourcing"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jstanislawczyk/event-driven-e-commerce.git"
+  },
+  "license": "ISC",
+  "author": "jstanislawczyk",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "test": "node --test --loader ts-node/esm src/**/*.test.ts",
+    "lint": "eslint 'src/**/*.ts'"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "mysql2": "^3.17.1",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.28",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.2.3",
+    "eslint": "^10.0.0",
+    "prettier": "^3.8.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
