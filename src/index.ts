@@ -2,6 +2,7 @@ import 'reflect-metadata';
 
 import { createApp } from './app.ts';
 import { dataSource } from './modules/ordering/infrastructure/database/data-source.ts';
+import {initializeKurrentClient} from './modules/ordering/infrastructure/database/kurrent.ts';
 
 dataSource
   .initialize()
@@ -11,6 +12,14 @@ dataSource
   .catch((error: Error) =>
     console.error('Error connecting to the database:', error),
   );
+
+initializeKurrentClient()
+  .then(() => {
+    console.log('KurrentDB initialized successfully');
+  })
+  .catch((error: Error) => {
+    console.error('Error in KurrentDB test:', error);
+  })
 
 const app = createApp();
 
