@@ -22,6 +22,7 @@
     "lint": "eslint 'src/**/*.ts'"
   },
   "dependencies": {
+    "@kurrent/kurrentdb-client": "~1.1",
     "express": "^5.2.1",
     "mysql2": "^3.17.1",
     "reflect-metadata": "^0.2.2",
