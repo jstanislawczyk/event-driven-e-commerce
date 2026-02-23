@@ -1,8 +1,6 @@
-import type {
-  DomainEvent,
-  EventStore,
-} from '../../application/ports/event-store.ts';
+import type { EventStore } from '../../application/ports/event-store.ts';
 import { jsonEvent, type KurrentDBClient } from '@kurrent/kurrentdb-client';
+import type { DomainEvent } from '../../domain/events/domain-event.ts';
 
 export class KurrentEventStore implements EventStore {
   constructor(private readonly client: KurrentDBClient) {}

@@ -1,8 +1,5 @@
-export interface EventStore {
-  appendToStream(streamName: string, events: any[]): Promise<void>;
-}
+import type { DomainEvent } from '../../domain/events/domain-event.ts';
 
-export type DomainEvent = {
-  type: string;
-  data: any;
-};
+export interface EventStore {
+  appendToStream(streamName: string, events: DomainEvent[]): Promise<void>;
+}
