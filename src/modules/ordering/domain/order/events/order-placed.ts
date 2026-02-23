@@ -6,7 +6,7 @@ export interface OrderPlacedEvent extends DomainEvent {
   data: OrderPlacedData;
 }
 
-interface OrderPlacedData {
+export interface OrderPlacedData {
   orderId: string;
   customerId: string;
   items: OrderItem[];

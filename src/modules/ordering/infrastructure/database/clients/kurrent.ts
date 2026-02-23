@@ -3,13 +3,14 @@ import { KurrentDBClient } from '@kurrent/kurrentdb-client';
 let kurrentClient: KurrentDBClient;
 
 async function initializeKurrentClient(): Promise<void> {
+  if (kurrentClient) {
+    return;
+  }
+
   const connectionString =
     process.env.KURRENT_URL ||
     'kurrentdb://admin:changeit@localhost:2113?tls=false';
-
-  if (!kurrentClient) {
-    kurrentClient = KurrentDBClient.connectionString`${connectionString}`;
-  }
+  kurrentClient = KurrentDBClient.connectionString`${connectionString}`;
 }
 
 async function getKurrentClient(): Promise<KurrentDBClient> {
@@ -17,7 +18,7 @@ async function getKurrentClient(): Promise<KurrentDBClient> {
     await initializeKurrentClient();
   }
 
-  return kurrentClient!;
+  return kurrentClient;
 }
 
 export { getKurrentClient, initializeKurrentClient };
