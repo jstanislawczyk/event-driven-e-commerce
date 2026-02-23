@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 
 import { createApp } from './app.ts';
-import { dataSource } from './modules/ordering/infrastructure/database/data-source.ts';
-import {initializeKurrentClient} from './modules/ordering/infrastructure/database/kurrent.ts';
+import { initializeKurrentClient } from './modules/ordering/infrastructure/database/clients/kurrent.ts';
+import { dataSource } from './modules/ordering/infrastructure/database/clients/data-source.ts';
 
 dataSource
   .initialize()
@@ -19,10 +19,10 @@ initializeKurrentClient()
   })
   .catch((error: Error) => {
     console.error('Error in KurrentDB test:', error);
-  })
+  });
 
-const app = createApp();
-
-app.listen(3000, () => {
-  console.log('Server is running on http://localhost:3000');
+createApp().then((value) => {
+  value.listen(3000, () => {
+    console.log('Server is running on http://localhost:3000');
+  });
 });

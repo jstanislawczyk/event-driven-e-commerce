@@ -1,23 +1,19 @@
 import express, { type Express } from 'express';
-import {getKurrentClient} from './modules/ordering/infrastructure/database/kurrent.ts';
 import {
   jsonEvent,
   FORWARDS,
   START,
   type JSONEventType,
 } from '@kurrent/kurrentdb-client';
+import { buildOrderRoutes } from './modules/ordering/infrastructure/http/routes/order.routes.ts';
+import { getKurrentClient } from './modules/ordering/infrastructure/database/clients/kurrent.ts';
 
-
-export function createApp(): Express {
+export async function createApp(): Promise<Express> {
   const app = express();
+  const orderRoutes = await buildOrderRoutes();
 
   app.use(express.json());
-
-  app.get('/', async (_req: express.Request, res: express.Response) => {
-    await appendToStream();
-    res.send('Hello, World!');
-  })
-
+  app.use('/orders', orderRoutes);
   return app;
 }
 
@@ -65,7 +61,7 @@ const appendToStream = async () => {
 
   const appendResult = await client.appendToStream<ReservationEvents>(
     streamName,
-    event
+    event,
   );
 
   console.log('Appended event', appendResult);
@@ -102,4 +98,4 @@ const appendToStream = async () => {
       }
     }
   }
-}
+};
