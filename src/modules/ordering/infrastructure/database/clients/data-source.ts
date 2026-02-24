@@ -9,7 +9,9 @@ export const dataSource = new DataSource({
   database: 'ordering',
   synchronize: true,
   logging: false,
-  entities: [],
+  entities: [
+    'src/modules/ordering/infrastructure/database/entities/**/*.{js,ts}',
+  ],
   migrations: [],
   subscribers: [],
 });

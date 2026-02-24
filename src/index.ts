@@ -9,23 +9,23 @@ dataSource
   .initialize()
   .then(() => {
     console.log('Database connection established successfully');
+
+    initializeKurrentClient()
+      .then(async () => {
+        console.log('KurrentDB initialized successfully');
+
+        const ordersSubscriber = await buildOrdersSubscriber();
+        await ordersSubscriber.start();
+
+        console.log('OrdersProjection started successfully');
+      })
+      .catch((error: Error) => {
+        console.error('Error in KurrentDB setup:', error);
+      });
   })
   .catch((error: Error) =>
     console.error('Error connecting to the database:', error),
   );
-
-initializeKurrentClient()
-  .then(async () => {
-    console.log('KurrentDB initialized successfully');
-
-    const ordersSubscriber = await buildOrdersSubscriber();
-    await ordersSubscriber.start();
-
-    console.log('OrdersProjection started successfully');
-  })
-  .catch((error: Error) => {
-    console.error('Error in KurrentDB test:', error);
-  });
 
 createApp().then((value) => {
   value.listen(3000, () => {
