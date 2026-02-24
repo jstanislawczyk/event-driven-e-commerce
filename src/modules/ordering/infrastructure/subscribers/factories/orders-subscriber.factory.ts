@@ -1,10 +1,10 @@
-import { OrdersProjection } from '../orders.projection.ts';
+import { OrdersSubscriber } from '../orders.subscriber.ts';
 import { KurrentEventStoreSubscriber } from '../../database/subscribers/kurrent-event-store.subscriber.ts';
 import { getKurrentClient } from '../../database/clients/kurrent.ts';
 
-export const buildOrdersProjection = async () => {
+export const buildOrdersSubscriber = async () => {
   const kurrentClient = await getKurrentClient();
   const eventStoreSubscriber = new KurrentEventStoreSubscriber(kurrentClient);
 
-  return new OrdersProjection(eventStoreSubscriber);
+  return new OrdersSubscriber(eventStoreSubscriber);
 };

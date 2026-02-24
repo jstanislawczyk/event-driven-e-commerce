@@ -2,7 +2,7 @@ import type { OrderPlacedData } from '../../domain/order/events/order-placed.ts'
 import type { AllStreamResolvedEvent } from '@kurrent/kurrentdb-client';
 import type { EventStoreSubscriber } from '../database/subscribers/event-store.subscriber.ts';
 
-export class OrdersProjection {
+export class OrdersSubscriber {
   constructor(private readonly eventStoreSubscriber: EventStoreSubscriber) {}
 
   async start() {

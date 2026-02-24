@@ -3,7 +3,7 @@ import 'reflect-metadata';
 import { createApp } from './app.ts';
 import { initializeKurrentClient } from './modules/ordering/infrastructure/database/clients/kurrent.ts';
 import { dataSource } from './modules/ordering/infrastructure/database/clients/data-source.ts';
-import { buildOrdersProjection } from './modules/ordering/infrastructure/projection/factories/orders-projection.factory.ts';
+import { buildOrdersSubscriber } from './modules/ordering/infrastructure/subscribers/factories/orders-subscriber.factory.ts';
 
 dataSource
   .initialize()
@@ -18,8 +18,8 @@ initializeKurrentClient()
   .then(async () => {
     console.log('KurrentDB initialized successfully');
 
-    const ordersProjection = await buildOrdersProjection();
-    await ordersProjection.start();
+    const ordersSubscriber = await buildOrdersSubscriber();
+    await ordersSubscriber.start();
 
     console.log('OrdersProjection started successfully');
   })
