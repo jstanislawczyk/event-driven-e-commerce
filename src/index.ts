@@ -2,8 +2,8 @@ import 'reflect-metadata';
 
 import { createApp } from './app.ts';
 import { initializeKurrentClient } from './modules/ordering/infrastructure/database/clients/kurrent.ts';
-import { dataSource } from './modules/ordering/infrastructure/database/clients/data-source.ts';
 import { buildOrdersSubscriber } from './modules/ordering/infrastructure/subscribers/factories/orders-subscriber.factory.ts';
+import { dataSource } from './database/data-source.ts';
 
 dataSource
   .initialize()

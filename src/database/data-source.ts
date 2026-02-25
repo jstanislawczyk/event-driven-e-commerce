@@ -11,6 +11,7 @@ export const dataSource = new DataSource({
   logging: false,
   entities: [
     'src/modules/ordering/infrastructure/database/entities/**/*.{js,ts}',
+    'src/modules/customers/infrastructure/database/entities/**/*.{js,ts}',
   ],
   migrations: [],
   subscribers: [],

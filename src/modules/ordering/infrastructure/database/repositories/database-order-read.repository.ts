@@ -1,8 +1,8 @@
 import type { Repository } from 'typeorm';
 import type { OrderReadRepository } from '../../../domain/repositories/order-read.repository.ts';
 import { OrderReadEntity } from '../entities/read-model/order-read.entity.ts';
-import { dataSource } from '../clients/data-source.ts';
 import type { OrderPlacedData } from '../../../domain/order/events/order-placed.ts';
+import { dataSource } from '../../../../../database/data-source.ts';
 
 export class DatabaseOrderReadRepository implements OrderReadRepository<OrderReadEntity> {
   private readonly orderReadRepository: Repository<OrderReadEntity>;
