@@ -1,13 +1,14 @@
 import type { OrderPlacedData } from '../../domain/order/events/order-placed.ts';
 import type { AllStreamResolvedEvent } from '@kurrent/kurrentdb-client';
 import type { EventStoreSubscriber } from '../database/subscribers/event-store.subscriber.ts';
-import type { OrderReadRepository } from '../../domain/repositories/order-read.repository.ts';
-import type { OrderReadEntity } from '../database/entities/read-model/order-read.entity.ts';
+import type { CustomerReader } from '../../application/ports/customer-reader.ts';
+import type { OrderReadRepository } from '../database/repositories/database-order-read.repository.ts';
 
 export class OrdersSubscriber {
   constructor(
     private readonly eventStoreSubscriber: EventStoreSubscriber,
-    private readonly orderReadRepository: OrderReadRepository<OrderReadEntity>,
+    private readonly orderReadRepository: OrderReadRepository,
+    private readonly customerReader: CustomerReader,
   ) {}
 
   async start() {
@@ -43,6 +44,10 @@ export class OrdersSubscriber {
 
   private async onOrderPlaced(event: OrderPlacedData): Promise<void> {
     console.log(`Placing new order. Id=${event.orderId}`);
-    await this.orderReadRepository.insert(event);
+    const customer = await this.customerReader.findForReadModel(
+      event.customerId,
+    );
+
+    await this.orderReadRepository.insert(event, customer);
   }
 }

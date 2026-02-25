@@ -2,11 +2,16 @@ import { OrdersSubscriber } from '../orders.subscriber.ts';
 import { KurrentEventStoreSubscriber } from '../../database/subscribers/kurrent-event-store.subscriber.ts';
 import { getKurrentClient } from '../../database/clients/kurrent.ts';
 import { DatabaseOrderReadRepository } from '../../database/repositories/database-order-read.repository.ts';
+import type { CustomerReader } from '../../../application/ports/customer-reader.ts';
 
-export const buildOrdersSubscriber = async () => {
+export const buildOrdersSubscriber = async (customerReader: CustomerReader) => {
   const kurrentClient = await getKurrentClient();
   const eventStoreSubscriber = new KurrentEventStoreSubscriber(kurrentClient);
   const orderReadRepository = new DatabaseOrderReadRepository();
 
-  return new OrdersSubscriber(eventStoreSubscriber, orderReadRepository);
+  return new OrdersSubscriber(
+    eventStoreSubscriber,
+    orderReadRepository,
+    customerReader,
+  );
 };

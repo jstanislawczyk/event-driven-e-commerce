@@ -1,22 +1,33 @@
 import type { Repository } from 'typeorm';
-import type { OrderReadRepository } from '../../../domain/repositories/order-read.repository.ts';
 import { OrderReadEntity } from '../entities/read-model/order-read.entity.ts';
 import type { OrderPlacedData } from '../../../domain/order/events/order-placed.ts';
 import { dataSource } from '../../../../../database/data-source.ts';
+import type { CustomerReadModel } from '../../../application/ports/customer-reader.ts';
 
-export class DatabaseOrderReadRepository implements OrderReadRepository<OrderReadEntity> {
+export interface OrderReadRepository {
+  insert(
+    event: OrderPlacedData,
+    customerReadModel: CustomerReadModel,
+  ): Promise<OrderReadEntity>;
+}
+
+export class DatabaseOrderReadRepository implements OrderReadRepository {
   private readonly orderReadRepository: Repository<OrderReadEntity>;
 
   constructor() {
     this.orderReadRepository = dataSource.getRepository(OrderReadEntity);
   }
 
-  async insert(data: OrderPlacedData): Promise<OrderReadEntity> {
-    const { orderId, customerId, totalAmount, placedAt, items } = data;
+  async insert(
+    data: OrderPlacedData,
+    customerReadModel: CustomerReadModel,
+  ): Promise<OrderReadEntity> {
+    const { orderId, customerId, totalAmount, placedAt } = data;
+    const { email: customerEmail } = customerReadModel;
     const entityToInsert = this.orderReadRepository.create({
       orderId,
       customerId,
-      customerEmail: '',
+      customerEmail,
       totalAmount,
       placedAt,
       status: 'AWAITING_PAYMENT',
