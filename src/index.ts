@@ -59,6 +59,6 @@ const buildCustomerReader = (): CustomerReaderAdapter => {
 
   const { customerReader } = initCrossModuleDependencies();
 
-  await initEventStoreSubscribers(customerReader);
   await initializeApp(customerReader);
+  await initEventStoreSubscribers(customerReader);
 })();

@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import type {
   CustomerReader,
-  CustomerReadModel,
+  Customer,
 } from '../../../ordering/application/ports/customer-reader.ts';
 import type { CustomerEntity } from './entities/customer.entity.ts';
 
@@ -14,7 +14,7 @@ export class CustomerReaderAdapter implements CustomerReader {
     });
   }
 
-  async findForReadModel(customerId: string): Promise<CustomerReadModel> {
+  async findById(customerId: string): Promise<Customer> {
     const customer = await this.repository.findOne({
       where: { id: customerId },
     });

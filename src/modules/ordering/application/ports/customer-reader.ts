@@ -1,9 +1,9 @@
 export interface CustomerReader {
   exists(customerId: string): Promise<boolean>;
-  findForReadModel(customerId: string): Promise<CustomerReadModel>;
+  findById(customerId: string): Promise<Customer>;
 }
 
-export interface CustomerReadModel {
+export interface Customer {
   id: string;
   email: string;
   firstName: string;

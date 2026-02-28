@@ -2,13 +2,10 @@ import type { Repository } from 'typeorm';
 import { OrderReadEntity } from '../entities/read-model/order-read.entity.ts';
 import type { OrderPlacedData } from '../../../domain/order/events/order-placed.ts';
 import { dataSource } from '../../../../../database/data-source.ts';
-import type { CustomerReadModel } from '../../../application/ports/customer-reader.ts';
+import type { Customer } from '../../../application/ports/customer-reader.ts';
 
 export interface OrderReadRepository {
-  insert(
-    event: OrderPlacedData,
-    customerReadModel: CustomerReadModel,
-  ): Promise<OrderReadEntity>;
+  insert(event: OrderPlacedData, customer: Customer): Promise<OrderReadEntity>;
 }
 
 export class DatabaseOrderReadRepository implements OrderReadRepository {
@@ -20,7 +17,7 @@ export class DatabaseOrderReadRepository implements OrderReadRepository {
 
   async insert(
     data: OrderPlacedData,
-    customerReadModel: CustomerReadModel,
+    customer: Customer,
   ): Promise<OrderReadEntity> {
     const { orderId, customerId, totalAmount, placedAt } = data;
     const { email: customerEmail } = customerReadModel;

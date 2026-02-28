@@ -44,9 +44,7 @@ export class OrdersSubscriber {
 
   private async onOrderPlaced(event: OrderPlacedData): Promise<void> {
     console.log(`Placing new order. Id=${event.orderId}`);
-    const customer = await this.customerReader.findForReadModel(
-      event.customerId,
-    );
+    const customer = await this.customerReader.findById(event.customerId);
 
     await this.orderReadRepository.insert(event, customer);
   }
