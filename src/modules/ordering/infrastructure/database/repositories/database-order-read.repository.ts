@@ -20,11 +20,10 @@ export class DatabaseOrderReadRepository implements OrderReadRepository {
     customer: Customer,
   ): Promise<OrderReadEntity> {
     const { orderId, customerId, totalAmount, placedAt } = data;
-    const { email: customerEmail } = customerReadModel;
     const entityToInsert = this.orderReadRepository.create({
       orderId,
       customerId,
-      customerEmail,
+      customerEmail: customer.email,
       totalAmount,
       placedAt,
       status: 'AWAITING_PAYMENT',
