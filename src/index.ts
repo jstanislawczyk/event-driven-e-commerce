@@ -6,37 +6,59 @@ import { buildOrdersSubscriber } from './modules/ordering/infrastructure/subscri
 import { dataSource } from './database/data-source.ts';
 import { CustomerReaderAdapter } from './modules/customers/infrastructure/database/customer-reader.adapter.ts';
 import { CustomerEntity } from './modules/customers/infrastructure/database/entities/customer.entity.ts';
+import type { CustomerReader } from './modules/ordering/application/ports/customer-reader.ts';
 
-dataSource
-  .initialize()
-  .then(() => {
+const initDatabase = async () => {
+  try {
+    await dataSource.initialize();
     console.log('Database connection established successfully');
+  } catch (error) {
+    console.error('Error connecting to the database:', error);
+    throw error;
+  }
+};
 
-    initializeKurrentClient()
-      .then(async () => {
-        console.log('KurrentDB initialized successfully');
+const initEventStore = async () => {
+  try {
+    await initializeKurrentClient();
+    console.log('KurrentDB initialized successfully');
+  } catch (error) {
+    console.error('Error in KurrentDB setup:', error);
+    throw error;
+  }
+};
 
-        const customerReader = buildCustomerReader();
-        const ordersSubscriber = await buildOrdersSubscriber(customerReader);
-        await ordersSubscriber.start();
+const initCrossModuleDependencies = () => {
+  return {
+    customerReader: buildCustomerReader(),
+  };
+};
 
-        createApp(customerReader).then((value) => {
-          value.listen(3000, () => {
-            console.log('Server is running on http://localhost:3000');
-          });
-        });
+const initEventStoreSubscribers = async (customerReader: CustomerReader) => {
+  const ordersSubscriber = await buildOrdersSubscriber(customerReader);
+  await ordersSubscriber.start();
+  console.log('Orders subscriber started successfully');
+};
 
-        console.log('OrdersProjection started successfully');
-      })
-      .catch((error: Error) => {
-        console.error('Error in KurrentDB setup:', error);
-      });
-  })
-  .catch((error: Error) =>
-    console.error('Error connecting to the database:', error),
-  );
+const initializeApp = async (customerReader: CustomerReader) => {
+  const app = await createApp(customerReader);
+
+  app.listen(3000, () => {
+    console.log('Server is running on http://localhost:3000');
+  });
+};
 
 const buildCustomerReader = (): CustomerReaderAdapter => {
   const customerRepository = dataSource.getRepository(CustomerEntity);
   return new CustomerReaderAdapter(customerRepository);
 };
+
+(async () => {
+  await initDatabase();
+  await initEventStore();
+
+  const { customerReader } = initCrossModuleDependencies();
+
+  await initEventStoreSubscribers(customerReader);
+  await initializeApp(customerReader);
+})();
