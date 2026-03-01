@@ -1,38 +1,70 @@
 import type { OrderPlacedData } from '../../domain/order/events/order-placed.ts';
-import type { AllStreamResolvedEvent } from '@kurrent/kurrentdb-client';
-import type { EventStoreSubscriber } from '../database/subscribers/event-store.subscriber.ts';
+import type {
+  AllStreamResolvedEvent,
+  AllStreamSubscription,
+} from '@kurrent/kurrentdb-client';
+import type {
+  EventStoreSubscriber,
+  StreamCheckpoint,
+} from '../database/subscribers/event-store.subscriber.ts';
 import type { CustomerReader } from '../../application/ports/customer-reader.ts';
 import type { OrderReadRepository } from '../database/repositories/database-order-read.repository.ts';
+import type { SubscriptionCheckpointRepository } from '../database/repositories/subscription-checkpoint.repository.ts';
+import type { SubscriptionCheckpointEntity } from '../database/entities/subscription-checkpoint.entity.ts';
+import type { AllStreamRecordedEvent } from '@kurrent/kurrentdb-client/dist/types/events.d.ts';
 
 export class OrdersSubscriber {
   constructor(
     private readonly eventStoreSubscriber: EventStoreSubscriber,
     private readonly orderReadRepository: OrderReadRepository,
     private readonly customerReader: CustomerReader,
+    private readonly subscriptionCheckpointRepository: SubscriptionCheckpointRepository,
   ) {}
 
   async start() {
-    const orderStreamPrefix = 'order-';
-    const subscription =
-      await this.eventStoreSubscriber.subscribeToStream(orderStreamPrefix);
+    const subscriptionCheckpoint =
+      await this.subscriptionCheckpointRepository.get('orders');
+    const subscription = await this.getSubscription(subscriptionCheckpoint);
 
     for await (const resolvedEvent of subscription) {
-      if (!resolvedEvent.event) {
-        continue;
-      }
-
-      await this.handle(resolvedEvent);
+      await this.handleSubscriptionEvent(resolvedEvent);
     }
   }
 
-  private async handle(resolvedEvent: AllStreamResolvedEvent): Promise<void> {
-    const event = resolvedEvent.event;
+  private async getSubscription(
+    subscriptionCheckpoint: SubscriptionCheckpointEntity | null,
+  ): Promise<AllStreamSubscription> {
+    const orderStreamPrefix = 'order-';
+    const checkpoint: StreamCheckpoint | undefined = subscriptionCheckpoint
+      ? {
+          commit: subscriptionCheckpoint.commit,
+          prepare: subscriptionCheckpoint.prepare,
+        }
+      : undefined;
+
+    return this.eventStoreSubscriber.subscribeToStream(
+      orderStreamPrefix,
+      checkpoint,
+    );
+  }
+
+  private async handleSubscriptionEvent(
+    resolvedEvent: AllStreamResolvedEvent,
+  ): Promise<void> {
+    const { event } = resolvedEvent;
 
     if (!event) {
       console.warn('Unknown order event', event);
       return;
     }
 
+    await this.executeEventAction(event);
+    await this.saveCheckpoint(event);
+  }
+
+  private async executeEventAction(
+    event: AllStreamRecordedEvent,
+  ): Promise<void> {
     const eventData = event.data as any;
 
     switch (event.type) {
@@ -47,5 +79,20 @@ export class OrdersSubscriber {
     const customer = await this.customerReader.findById(event.customerId);
 
     await this.orderReadRepository.insert(event, customer);
+  }
+
+  private async saveCheckpoint(event: AllStreamRecordedEvent): Promise<void> {
+    if (!event.position) {
+      console.warn('Event has no position, skipping checkpoint save', event);
+      return;
+    }
+
+    const { commit, prepare } = event.position;
+
+    await this.subscriptionCheckpointRepository.save({
+      streamName: 'orders',
+      commit: commit.toString(),
+      prepare: prepare.toString(),
+    });
   }
 }
