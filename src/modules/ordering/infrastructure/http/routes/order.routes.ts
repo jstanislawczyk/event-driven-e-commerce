@@ -1,8 +1,11 @@
 import { Router } from 'express';
 import { buildOrderController } from '../factories/order-controller.factory.ts';
+import type { CustomerReader } from '../../../application/ports/customer-reader.ts';
 
-export async function buildOrderRoutes(): Promise<Router> {
-  const controller = await buildOrderController();
+export async function buildOrderRoutes(
+  customerReader: CustomerReader,
+): Promise<Router> {
+  const controller = await buildOrderController(customerReader);
   const router = Router();
 
   router.post('/', controller.create.bind(controller));
