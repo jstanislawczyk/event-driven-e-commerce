@@ -17,7 +17,7 @@ export class Order {
     private changes: DomainEvent[] = [],
   ) {}
 
-  public static rehydrate(events: DomainEvent[]) {
+  public static rehydrate(events: DomainEvent[]): Order {
     const order = new Order();
 
     for (const event of events) {
@@ -44,8 +44,6 @@ export class Order {
       throw new Error('Order has already been placed');
     }
 
-    this.status = OrderStatus.AWAITING_PAYMENT;
-
     const { orderId, customerId, items } = input;
     const totalAmount = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
@@ -62,7 +60,7 @@ export class Order {
       },
     };
 
-    this.apply(event);
+    this.raise(event);
 
     return this;
   }
@@ -91,16 +89,21 @@ export class Order {
       },
     };
 
-    this.apply(event);
+    this.raise(event);
 
     return this;
   }
 
-  public getUncommittedChanges() {
+  public getUncommittedChanges(): DomainEvent[] {
     return this.changes;
   }
 
-  private apply(event: any) {
+  private raise(event: any): void {
+    this.apply(event);
+    this.changes.push(event);
+  }
+
+  private apply(event: any): void {
     switch (event.type) {
       case 'OrderPlaced':
         this.applyOrderPlaced(event as OrderPlacedEvent);
@@ -111,21 +114,20 @@ export class Order {
       default:
         throw new Error(`Unknown Order event type: ${event.type}`);
     }
-
-    this.changes.push(event);
   }
 
-  private applyOrderPlaced(event: OrderPlacedEvent) {
+  private applyOrderPlaced(event: OrderPlacedEvent): void {
     const { orderId, customerId, items, placedAt, totalAmount } = event.data;
 
     this.id = orderId;
     this.customerId = customerId;
+    this.status = OrderStatus.AWAITING_PAYMENT;
     this.items = items;
     this.totalAmount = totalAmount;
     this.placedAt = new Date(placedAt);
   }
 
-  private applyPaymentAuthorized(event: PaymentAuthorizedEvent) {
+  private applyPaymentAuthorized(event: PaymentAuthorizedEvent): void {
     const { paymentId, authorizedAt } = event.data;
     this.paymentId = paymentId;
     this.status = OrderStatus.PAYMENT_AUTHORIZED;

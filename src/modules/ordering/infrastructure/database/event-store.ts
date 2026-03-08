@@ -1,12 +1,35 @@
 import type { EventStore } from '../../application/ports/event-store.ts';
-import { jsonEvent, type KurrentDBClient } from '@kurrent/kurrentdb-client';
+import type { KurrentDBClient, ResolvedEvent } from '@kurrent/kurrentdb-client';
+import { jsonEvent, StreamNotFoundError } from '@kurrent/kurrentdb-client';
 import type { DomainEvent } from '../../domain/events/domain-event.ts';
 
 export class KurrentEventStore implements EventStore {
   constructor(private readonly client: KurrentDBClient) {}
 
   async readFromStream(streamName: string): Promise<DomainEvent[]> {
-    return [];
+    const streamEvents = this.client.readStream(streamName);
+
+    let domainEvents: DomainEvent[] = [];
+
+    try {
+      for await (const event of streamEvents) {
+        const domainEvent = this.mapToDomainEvent(event);
+
+        if (!domainEvent) {
+          continue;
+        }
+
+        domainEvents.push(domainEvent);
+      }
+    } catch (error) {
+      if (error instanceof StreamNotFoundError) {
+        return [];
+      }
+
+      throw error;
+    }
+
+    return domainEvents;
   }
 
   async appendToStream(
@@ -21,5 +44,18 @@ export class KurrentEventStore implements EventStore {
     );
 
     await this.client.appendToStream(streamName, mappedEvents);
+  }
+
+  private mapToDomainEvent(event: ResolvedEvent): DomainEvent | undefined {
+    const rawEvent = event.event;
+
+    if (!rawEvent) {
+      return;
+    }
+
+    return {
+      type: rawEvent.type,
+      data: rawEvent.data,
+    };
   }
 }
