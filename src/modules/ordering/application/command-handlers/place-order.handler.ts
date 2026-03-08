@@ -3,6 +3,7 @@ import type { PlaceOrderCommand } from '../commands/place-order.command.ts';
 import type { EventStore } from '../ports/event-store.ts';
 import { Order } from '../../domain/order/order.ts';
 import type { CustomerReader } from '../ports/customer-reader.ts';
+import { buildOrderStreamName } from '../streams/order.stream.ts';
 
 export class PlaceOrderHandler implements CommandHandler<PlaceOrderCommand> {
   constructor(
@@ -19,8 +20,8 @@ export class PlaceOrderHandler implements CommandHandler<PlaceOrderCommand> {
       throw new Error(`Customer with ID ${customerId} does not exist.`);
     }
 
-    const streamName = `order-${command.orderId}`;
-    const order = new Order(command.orderId, command.customerId);
+    const streamName = buildOrderStreamName(orderId);
+    const order = Order.createNew(orderId, customerId);
     const placedOrder = order.placeOrder({
       orderId,
       customerId,

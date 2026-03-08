@@ -9,6 +9,10 @@ export async function buildOrderRoutes(
   const router = Router();
 
   router.post('/', controller.create.bind(controller));
+  router.post(
+    '/:orderId/payment/authorize',
+    controller.authorizePayment.bind(controller),
+  );
 
   return router;
 }

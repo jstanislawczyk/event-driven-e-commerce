@@ -5,6 +5,10 @@ import type { DomainEvent } from '../../domain/events/domain-event.ts';
 export class KurrentEventStore implements EventStore {
   constructor(private readonly client: KurrentDBClient) {}
 
+  async readFromStream(streamName: string): Promise<DomainEvent[]> {
+    return [];
+  }
+
   async appendToStream(
     streamName: string,
     events: DomainEvent[],
