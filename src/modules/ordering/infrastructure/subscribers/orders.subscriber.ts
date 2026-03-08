@@ -12,6 +12,7 @@ import type { OrderReadRepository } from '../database/repositories/database-orde
 import type { SubscriptionCheckpointRepository } from '../database/repositories/subscription-checkpoint.repository.ts';
 import type { SubscriptionCheckpointEntity } from '../database/entities/subscription-checkpoint.entity.ts';
 import type { AllStreamRecordedEvent } from '@kurrent/kurrentdb-client/dist/types/events.d.ts';
+import type { PaymentAuthorizedData } from '../../domain/order/events/payment-authorized.ts';
 
 export class OrdersSubscriber {
   constructor(
@@ -71,6 +72,9 @@ export class OrdersSubscriber {
       case 'OrderPlaced':
         await this.onOrderPlaced(eventData);
         break;
+      case 'PaymentAuthorized':
+        await this.onPaymentAuthorized(eventData);
+        break;
     }
   }
 
@@ -79,6 +83,17 @@ export class OrdersSubscriber {
     const customer = await this.customerReader.findById(event.customerId);
 
     await this.orderReadRepository.insert(event, customer);
+  }
+
+  private async onPaymentAuthorized(
+    event: PaymentAuthorizedData,
+  ): Promise<void> {
+    console.log(`Payment authorized for order. Id=${event.orderId}`);
+
+    await this.orderReadRepository.updatePaymentStatus(
+      event.orderId,
+      new Date(event.authorizedAt),
+    );
   }
 
   private async saveCheckpoint(event: AllStreamRecordedEvent): Promise<void> {

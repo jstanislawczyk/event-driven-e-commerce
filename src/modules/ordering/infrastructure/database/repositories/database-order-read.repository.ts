@@ -6,6 +6,7 @@ import type { Customer } from '../../../application/ports/customer-reader.ts';
 
 export interface OrderReadRepository {
   insert(event: OrderPlacedData, customer: Customer): Promise<OrderReadEntity>;
+  updatePaymentStatus(orderId: string, paidAt: Date): Promise<void>;
 }
 
 export class DatabaseOrderReadRepository implements OrderReadRepository {
@@ -30,5 +31,12 @@ export class DatabaseOrderReadRepository implements OrderReadRepository {
     });
 
     return this.orderReadRepository.save(entityToInsert);
+  }
+
+  async updatePaymentStatus(orderId: string, paidAt: Date): Promise<void> {
+    await this.orderReadRepository.update(
+      { orderId },
+      { status: 'PAID', paidAt },
+    );
   }
 }
