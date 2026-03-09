@@ -3,6 +3,7 @@ import { OrderItem } from './order-item.ts';
 import type { OrderPlacedEvent } from './events/order-placed.ts';
 import type { DomainEvent } from '../events/domain-event.ts';
 import type { PaymentAuthorizedEvent } from './events/payment-authorized.ts';
+import { OrderEventType } from './events/order-event-type.ts';
 
 export class Order {
   private constructor(
@@ -50,7 +51,7 @@ export class Order {
       0,
     );
     const event: OrderPlacedEvent = {
-      type: 'OrderPlaced',
+      type: OrderEventType.ORDER_PLACED,
       data: {
         orderId,
         customerId,
@@ -81,7 +82,7 @@ export class Order {
 
     const { paymentId, authorizedAt } = input;
     const event: PaymentAuthorizedEvent = {
-      type: 'PaymentAuthorized',
+      type: OrderEventType.PAYMENT_AUTHORIZED,
       data: {
         orderId: this.id,
         paymentId,
@@ -105,10 +106,10 @@ export class Order {
 
   private apply(event: any): void {
     switch (event.type) {
-      case 'OrderPlaced':
+      case OrderEventType.ORDER_PLACED:
         this.applyOrderPlaced(event as OrderPlacedEvent);
         break;
-      case 'PaymentAuthorized':
+      case OrderEventType.PAYMENT_AUTHORIZED:
         this.applyPaymentAuthorized(event as PaymentAuthorizedEvent);
         break;
       default:

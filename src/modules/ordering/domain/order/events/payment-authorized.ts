@@ -1,7 +1,8 @@
 import type { DomainEvent } from '../../events/domain-event.ts';
+import { OrderEventType } from './order-event-type.ts';
 
 export interface PaymentAuthorizedEvent extends DomainEvent {
-  type: 'PaymentAuthorized';
+  type: OrderEventType.PAYMENT_AUTHORIZED;
   data: PaymentAuthorizedData;
 }
 

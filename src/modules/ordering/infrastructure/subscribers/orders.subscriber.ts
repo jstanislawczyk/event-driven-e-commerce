@@ -13,6 +13,7 @@ import type { SubscriptionCheckpointRepository } from '../database/repositories/
 import type { SubscriptionCheckpointEntity } from '../database/entities/subscription-checkpoint.entity.ts';
 import type { AllStreamRecordedEvent } from '@kurrent/kurrentdb-client/dist/types/events.d.ts';
 import type { PaymentAuthorizedData } from '../../domain/order/events/payment-authorized.ts';
+import { OrderEventType } from '../../domain/order/events/order-event-type.ts';
 
 export class OrdersSubscriber {
   constructor(
@@ -67,15 +68,20 @@ export class OrdersSubscriber {
     event: AllStreamRecordedEvent,
   ): Promise<void> {
     const eventData = event.data as any;
+    const eventActionMap: Record<OrderEventType, () => Promise<void>> = {
+      [OrderEventType.ORDER_PLACED]: () => this.onOrderPlaced(eventData),
+      [OrderEventType.PAYMENT_AUTHORIZED]: () =>
+        this.onPaymentAuthorized(eventData),
+    };
 
-    switch (event.type) {
-      case 'OrderPlaced':
-        await this.onOrderPlaced(eventData);
-        break;
-      case 'PaymentAuthorized':
-        await this.onPaymentAuthorized(eventData);
-        break;
+    const eventAction = eventActionMap[event.type as OrderEventType];
+
+    if (!eventAction) {
+      console.warn('No handler for event type', event.type);
+      return;
     }
+
+    await eventAction();
   }
 
   private async onOrderPlaced(event: OrderPlacedData): Promise<void> {

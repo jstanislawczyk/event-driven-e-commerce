@@ -1,8 +1,9 @@
 import type { OrderItem } from '../order-item.ts';
 import type { DomainEvent } from '../../events/domain-event.ts';
+import { OrderEventType } from './order-event-type.ts';
 
 export interface OrderPlacedEvent extends DomainEvent {
-  type: 'OrderPlaced';
+  type: OrderEventType.ORDER_PLACED;
   data: OrderPlacedData;
 }
 
