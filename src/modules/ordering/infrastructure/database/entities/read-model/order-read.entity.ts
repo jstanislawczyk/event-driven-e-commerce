@@ -21,4 +21,7 @@ export class OrderReadEntity {
 
   @Column()
   placedAt: Date;
+
+  @Column({ nullable: true })
+  paidAt?: Date;
 }
