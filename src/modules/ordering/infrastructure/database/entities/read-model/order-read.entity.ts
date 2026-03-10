@@ -14,7 +14,7 @@ export class OrderReadEntity {
 
   @Index()
   @Column()
-  status: 'AWAITING_PAYMENT' | 'PAID' | 'CANCELLED';
+  status: 'AWAITING_PAYMENT' | 'PAYMENT_AUTHORIZED' | 'PAYMENT_REJECTED';
 
   @Column('decimal', { precision: 10, scale: 2 })
   totalAmount: number;

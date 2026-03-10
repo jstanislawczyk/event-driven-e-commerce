@@ -4,6 +4,7 @@ import { getKurrentClient } from '../../database/clients/kurrent.ts';
 import { KurrentEventStore } from '../../database/event-store.ts';
 import type { CustomerReader } from '../../../application/ports/customer-reader.ts';
 import { AuthorizePaymentHandler } from '../../../application/command-handlers/authorize-payment.handler.ts';
+import { RejectPaymentHandler } from '../../../application/command-handlers/reject-payment.handler.ts';
 
 export const buildOrderController = async (
   customerReader: CustomerReader,
@@ -12,6 +13,11 @@ export const buildOrderController = async (
   const eventStore = new KurrentEventStore(kurrentClient);
   const placeOrderHandler = new PlaceOrderHandler(eventStore, customerReader);
   const authorizePaymentHandler = new AuthorizePaymentHandler(eventStore);
+  const rejectPaymentHandler = new RejectPaymentHandler(eventStore);
 
-  return new OrderController(placeOrderHandler, authorizePaymentHandler);
+  return new OrderController(
+    placeOrderHandler,
+    authorizePaymentHandler,
+    rejectPaymentHandler,
+  );
 };

@@ -4,6 +4,7 @@ import type { OrderPlacedEvent } from './events/order-placed.ts';
 import type { DomainEvent } from '../events/domain-event.ts';
 import type { PaymentAuthorizedEvent } from './events/payment-authorized.ts';
 import { OrderEventType } from './events/order-event-type.ts';
+import type { PaymentRejectedEvent } from './events/payment-rejected.ts';
 
 export class Order {
   private constructor(
@@ -11,7 +12,6 @@ export class Order {
     private customerId: string = '',
     private paymentId: string | null = null,
     private status: OrderStatus = OrderStatus.NONE,
-    private totalAmount: number = 0,
     private items: OrderItem[] = [],
     private placedAt: Date | null = null,
     private paidAt: Date | null = null,
@@ -70,9 +70,12 @@ export class Order {
     paymentId: string;
     authorizedAt: Date;
   }): Order {
-    if (this.status !== OrderStatus.AWAITING_PAYMENT) {
+    if (
+      this.status !== OrderStatus.AWAITING_PAYMENT &&
+      this.status !== OrderStatus.PAYMENT_REJECTED
+    ) {
       throw new Error(
-        'Payment can only be authorized for orders awaiting payment',
+        'Payment can only be authorized for orders awaiting payment or previously rejected',
       );
     }
 
@@ -87,6 +90,30 @@ export class Order {
         orderId: this.id,
         paymentId,
         authorizedAt: authorizedAt.toISOString(),
+      },
+    };
+
+    this.raise(event);
+
+    return this;
+  }
+
+  public rejectPayment(input: { paymentId: string }): Order {
+    if (this.status !== OrderStatus.AWAITING_PAYMENT) {
+      throw new Error(
+        'Payment can only be rejected for orders awaiting payment',
+      );
+    }
+
+    if (!this.id) {
+      throw new Error('Order ID is missing');
+    }
+
+    const event: PaymentRejectedEvent = {
+      type: OrderEventType.PAYMENT_REJECTED,
+      data: {
+        orderId: this.id,
+        paymentId: input.paymentId,
       },
     };
 
@@ -112,19 +139,21 @@ export class Order {
       case OrderEventType.PAYMENT_AUTHORIZED:
         this.applyPaymentAuthorized(event as PaymentAuthorizedEvent);
         break;
+      case OrderEventType.PAYMENT_REJECTED:
+        this.applyPaymentRejected(event as PaymentRejectedEvent);
+        break;
       default:
         throw new Error(`Unknown Order event type: ${event.type}`);
     }
   }
 
   private applyOrderPlaced(event: OrderPlacedEvent): void {
-    const { orderId, customerId, items, placedAt, totalAmount } = event.data;
+    const { orderId, customerId, items, placedAt } = event.data;
 
     this.id = orderId;
     this.customerId = customerId;
     this.status = OrderStatus.AWAITING_PAYMENT;
     this.items = items;
-    this.totalAmount = totalAmount;
     this.placedAt = new Date(placedAt);
   }
 
@@ -133,5 +162,10 @@ export class Order {
     this.paymentId = paymentId;
     this.status = OrderStatus.PAYMENT_AUTHORIZED;
     this.paidAt = new Date(authorizedAt);
+  }
+
+  private applyPaymentRejected(event: PaymentRejectedEvent): void {
+    this.paymentId = event.data.paymentId;
+    this.status = OrderStatus.PAYMENT_REJECTED;
   }
 }
