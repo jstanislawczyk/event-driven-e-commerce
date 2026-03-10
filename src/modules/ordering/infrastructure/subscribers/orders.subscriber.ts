@@ -15,6 +15,7 @@ import type { AllStreamRecordedEvent } from '@kurrent/kurrentdb-client/dist/type
 import type { PaymentAuthorizedData } from '../../domain/order/events/payment-authorized.ts';
 import { OrderEventType } from '../../domain/order/events/order-event-type.ts';
 import type { PaymentRejectedData } from '../../domain/order/events/payment-rejected.ts';
+import type { OrderShippedData } from '../../domain/order/events/order-shipped.ts';
 
 export class OrdersSubscriber {
   constructor(
@@ -75,6 +76,7 @@ export class OrdersSubscriber {
         this.onPaymentAuthorized(eventData),
       [OrderEventType.PAYMENT_REJECTED]: () =>
         this.onPaymentRejected(eventData),
+      [OrderEventType.ORDER_SHIPPED]: () => this.onOrderShipped(eventData),
     };
 
     const eventAction = eventActionMap[event.type as OrderEventType];
@@ -109,6 +111,15 @@ export class OrdersSubscriber {
     console.warn(`Payment rejected for order. Id=${event.orderId}`);
 
     await this.orderReadRepository.setAsPaymentAsRejected(event.orderId);
+  }
+
+  private async onOrderShipped(event: OrderShippedData): Promise<void> {
+    console.log(`Order shipped. Id=${event.orderId}`);
+
+    await this.orderReadRepository.setAsShipped(
+      event.orderId,
+      new Date(event.shippedAt),
+    );
   }
 
   private async saveCheckpoint(event: AllStreamRecordedEvent): Promise<void> {

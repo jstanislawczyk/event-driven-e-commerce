@@ -9,12 +9,16 @@ import type { AuthorizePaymentCommand } from '../../../application/commands/auth
 import type { RejectPaymentCommand } from '../../../application/commands/reject-payment.command.ts';
 import type { RejectPaymentHandler } from '../../../application/command-handlers/reject-payment.handler.ts';
 import { rejectPaymentDtoSchema } from '../dtos/reject-payment.dto.ts';
+import type { ShipOrderHandler } from '../../../application/command-handlers/ship-order.handler.ts';
+import { shipOrderDtoSchema } from '../dtos/ship-order.dto.ts';
+import type { ShipOrderCommand } from '../../../application/commands/ship-order.command.ts';
 
 export class OrderController {
   constructor(
     private readonly placeOrderHandler: PlaceOrderHandler,
     private readonly authorizePaymentHandler: AuthorizePaymentHandler,
     private readonly rejectPaymentHandler: RejectPaymentHandler,
+    private readonly shipOrderHandler: ShipOrderHandler,
   ) {}
 
   async create(request: Request, response: Response) {
@@ -120,6 +124,46 @@ export class OrderController {
       return response.status(201).json({
         orderId: rejectPaymentCommand.orderId,
         status: 'PAYMENT_REJECTED',
+      });
+    } catch (error: any) {
+      return response.status(500).json({ error: error.message });
+    }
+  }
+
+  async shipOrder(request: Request, response: Response) {
+    const requestOrderId = request.params.orderId;
+
+    if (!requestOrderId) {
+      return response.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const parsedBody = shipOrderDtoSchema.safeParse(request.body);
+
+    if (!parsedBody.success) {
+      return response.status(400).json({
+        error: 'Validation failed',
+        details: parsedBody.error.issues,
+      });
+    }
+
+    if (parsedBody.data.orderId !== requestOrderId) {
+      return response
+        .status(400)
+        .json({ error: 'Order ID in body does not match URL parameter' });
+    }
+
+    const { orderId, shippedAt } = parsedBody.data;
+    const shipOrderCommand: ShipOrderCommand = {
+      orderId,
+      shippedAt: new Date(shippedAt),
+    };
+
+    try {
+      await this.shipOrderHandler.execute(shipOrderCommand);
+
+      return response.status(201).json({
+        orderId: shipOrderCommand.orderId,
+        status: 'ORDER_SHIPPED',
       });
     } catch (error: any) {
       return response.status(500).json({ error: error.message });
