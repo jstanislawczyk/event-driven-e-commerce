@@ -13,6 +13,10 @@ export async function buildOrderRoutes(
     '/:orderId/payment/authorize',
     controller.authorizePayment.bind(controller),
   );
+  router.post(
+    '/:orderId/payment/reject',
+    controller.rejectPayment.bind(controller),
+  );
 
   return router;
 }
