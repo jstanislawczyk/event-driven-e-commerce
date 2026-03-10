@@ -8,6 +8,7 @@ export interface OrderReadRepository {
   insert(event: OrderPlacedData, customer: Customer): Promise<OrderReadEntity>;
   setPaymentAsAuthorized(orderId: string, paidAt: Date): Promise<void>;
   setAsPaymentAsRejected(orderId: string): Promise<void>;
+  setAsShipped(orderId: string, shippedAt: Date): Promise<void>;
 }
 
 export class DatabaseOrderReadRepository implements OrderReadRepository {
@@ -45,6 +46,13 @@ export class DatabaseOrderReadRepository implements OrderReadRepository {
     await this.orderReadRepository.update(
       { orderId },
       { status: 'PAYMENT_REJECTED' },
+    );
+  }
+
+  async setAsShipped(orderId: string, shippedAt: Date): Promise<void> {
+    await this.orderReadRepository.update(
+      { orderId },
+      { status: 'SHIPPED', shippedAt },
     );
   }
 }

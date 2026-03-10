@@ -14,7 +14,11 @@ export class OrderReadEntity {
 
   @Index()
   @Column()
-  status: 'AWAITING_PAYMENT' | 'PAYMENT_AUTHORIZED' | 'PAYMENT_REJECTED';
+  status:
+    | 'AWAITING_PAYMENT'
+    | 'PAYMENT_AUTHORIZED'
+    | 'PAYMENT_REJECTED'
+    | 'SHIPPED';
 
   @Column('decimal', { precision: 10, scale: 2 })
   totalAmount: number;
@@ -24,4 +28,7 @@ export class OrderReadEntity {
 
   @Column({ nullable: true })
   paidAt?: Date;
+
+  @Column({ nullable: true })
+  shippedAt?: Date;
 }

@@ -5,6 +5,7 @@ import type { DomainEvent } from '../events/domain-event.ts';
 import type { PaymentAuthorizedEvent } from './events/payment-authorized.ts';
 import { OrderEventType } from './events/order-event-type.ts';
 import type { PaymentRejectedEvent } from './events/payment-rejected.ts';
+import type { OrderShippedEvent } from './events/order-shipped.ts';
 
 export class Order {
   private constructor(
@@ -122,6 +123,28 @@ export class Order {
     return this;
   }
 
+  public ship(input: { shippedAt: Date }): Order {
+    if (this.status !== OrderStatus.PAYMENT_AUTHORIZED) {
+      throw new Error('Only orders with authorized payment can be shipped');
+    }
+
+    if (!this.id) {
+      throw new Error('Order ID is missing');
+    }
+
+    const event: OrderShippedEvent = {
+      type: OrderEventType.ORDER_SHIPPED,
+      data: {
+        orderId: this.id,
+        shippedAt: input.shippedAt.toISOString(),
+      },
+    };
+
+    this.raise(event);
+
+    return this;
+  }
+
   public getUncommittedChanges(): DomainEvent[] {
     return this.changes;
   }
@@ -141,6 +164,9 @@ export class Order {
         break;
       case OrderEventType.PAYMENT_REJECTED:
         this.applyPaymentRejected(event as PaymentRejectedEvent);
+        break;
+      case OrderEventType.ORDER_SHIPPED:
+        this.applyOrderShipped();
         break;
       default:
         throw new Error(`Unknown Order event type: ${event.type}`);
@@ -167,5 +193,9 @@ export class Order {
   private applyPaymentRejected(event: PaymentRejectedEvent): void {
     this.paymentId = event.data.paymentId;
     this.status = OrderStatus.PAYMENT_REJECTED;
+  }
+
+  private applyOrderShipped(): void {
+    this.status = OrderStatus.SHIPPED;
   }
 }
