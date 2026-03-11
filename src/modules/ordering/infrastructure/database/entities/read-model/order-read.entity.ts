@@ -32,4 +32,7 @@ export class OrderReadEntity {
 
   @Column({ nullable: true })
   shippedAt?: Date;
+
+  @Column({ nullable: true })
+  deliveredAt?: Date;
 }

@@ -14,6 +14,7 @@ import { shipOrderDtoSchema } from '../dtos/ship-order.dto.ts';
 import type { ShipOrderCommand } from '../../../application/commands/ship-order.command.ts';
 import type { DeliverOrderHandler } from '../../../application/command-handlers/deliver-order.handler.ts';
 import type { DeliverOrderCommand } from '../../../application/commands/deliver-order.command.ts';
+import { deliverOrderDtoSchema } from '../dtos/deliver-order.dto.ts';
 
 export class OrderController {
   constructor(
@@ -180,7 +181,7 @@ export class OrderController {
       return response.status(400).json({ error: 'Order ID is required' });
     }
 
-    const parsedBody = shipOrderDtoSchema.safeParse(request.body);
+    const parsedBody = deliverOrderDtoSchema.safeParse(request.body);
 
     if (!parsedBody.success) {
       return response.status(400).json({
