@@ -12,6 +12,9 @@ import { rejectPaymentDtoSchema } from '../dtos/reject-payment.dto.ts';
 import type { ShipOrderHandler } from '../../../application/command-handlers/ship-order.handler.ts';
 import { shipOrderDtoSchema } from '../dtos/ship-order.dto.ts';
 import type { ShipOrderCommand } from '../../../application/commands/ship-order.command.ts';
+import type { DeliverOrderHandler } from '../../../application/command-handlers/deliver-order.handler.ts';
+import type { DeliverOrderCommand } from '../../../application/commands/deliver-order.command.ts';
+import { deliverOrderDtoSchema } from '../dtos/deliver-order.dto.ts';
 
 export class OrderController {
   constructor(
@@ -19,6 +22,7 @@ export class OrderController {
     private readonly authorizePaymentHandler: AuthorizePaymentHandler,
     private readonly rejectPaymentHandler: RejectPaymentHandler,
     private readonly shipOrderHandler: ShipOrderHandler,
+    private readonly deliverOrderHandler: DeliverOrderHandler,
   ) {}
 
   async create(request: Request, response: Response) {
@@ -164,6 +168,46 @@ export class OrderController {
       return response.status(201).json({
         orderId: shipOrderCommand.orderId,
         status: 'ORDER_SHIPPED',
+      });
+    } catch (error: any) {
+      return response.status(500).json({ error: error.message });
+    }
+  }
+
+  async deliverOrder(request: Request, response: Response) {
+    const requestOrderId = request.params.orderId;
+
+    if (!requestOrderId) {
+      return response.status(400).json({ error: 'Order ID is required' });
+    }
+
+    const parsedBody = deliverOrderDtoSchema.safeParse(request.body);
+
+    if (!parsedBody.success) {
+      return response.status(400).json({
+        error: 'Validation failed',
+        details: parsedBody.error.issues,
+      });
+    }
+
+    if (parsedBody.data.orderId !== requestOrderId) {
+      return response
+        .status(400)
+        .json({ error: 'Order ID in body does not match URL parameter' });
+    }
+
+    const { orderId, deliveredAt } = parsedBody.data;
+    const deliverOrderCommand: DeliverOrderCommand = {
+      orderId,
+      deliveredAt: new Date(deliveredAt),
+    };
+
+    try {
+      await this.deliverOrderHandler.execute(deliverOrderCommand);
+
+      return response.status(201).json({
+        orderId: deliverOrderCommand.orderId,
+        status: 'ORDER_DELIVERED',
       });
     } catch (error: any) {
       return response.status(500).json({ error: error.message });

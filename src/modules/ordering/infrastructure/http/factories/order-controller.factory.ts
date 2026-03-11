@@ -6,6 +6,7 @@ import type { CustomerReader } from '../../../application/ports/customer-reader.
 import { AuthorizePaymentHandler } from '../../../application/command-handlers/authorize-payment.handler.ts';
 import { RejectPaymentHandler } from '../../../application/command-handlers/reject-payment.handler.ts';
 import { ShipOrderHandler } from '../../../application/command-handlers/ship-order.handler.ts';
+import { DeliverOrderHandler } from '../../../application/command-handlers/deliver-order.handler.ts';
 
 export const buildOrderController = async (
   customerReader: CustomerReader,
@@ -16,11 +17,13 @@ export const buildOrderController = async (
   const authorizePaymentHandler = new AuthorizePaymentHandler(eventStore);
   const rejectPaymentHandler = new RejectPaymentHandler(eventStore);
   const shipOrderHandler = new ShipOrderHandler(eventStore);
+  const deliverOrderHandler = new DeliverOrderHandler(eventStore);
 
   return new OrderController(
     placeOrderHandler,
     authorizePaymentHandler,
     rejectPaymentHandler,
     shipOrderHandler,
+    deliverOrderHandler,
   );
 };

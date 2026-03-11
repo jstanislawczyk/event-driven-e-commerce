@@ -16,6 +16,7 @@ import type { PaymentAuthorizedData } from '../../domain/order/events/payment-au
 import { OrderEventType } from '../../domain/order/events/order-event-type.ts';
 import type { PaymentRejectedData } from '../../domain/order/events/payment-rejected.ts';
 import type { OrderShippedData } from '../../domain/order/events/order-shipped.ts';
+import type { OrderDeliveredData } from '../../domain/order/events/order-delivered.ts';
 
 export class OrdersSubscriber {
   constructor(
@@ -77,6 +78,7 @@ export class OrdersSubscriber {
       [OrderEventType.PAYMENT_REJECTED]: () =>
         this.onPaymentRejected(eventData),
       [OrderEventType.ORDER_SHIPPED]: () => this.onOrderShipped(eventData),
+      [OrderEventType.ORDER_DELIVERED]: () => this.onOrderDelivered(eventData),
     };
 
     const eventAction = eventActionMap[event.type as OrderEventType];
@@ -119,6 +121,15 @@ export class OrdersSubscriber {
     await this.orderReadRepository.setAsShipped(
       event.orderId,
       new Date(event.shippedAt),
+    );
+  }
+
+  private async onOrderDelivered(event: OrderDeliveredData): Promise<void> {
+    console.log(`Order delivered. Id=${event.orderId}`);
+
+    await this.orderReadRepository.setAsDelivered(
+      event.orderId,
+      new Date(event.deliveredAt),
     );
   }
 

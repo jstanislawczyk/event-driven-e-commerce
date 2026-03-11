@@ -6,6 +6,7 @@ import type { PaymentAuthorizedEvent } from './events/payment-authorized.ts';
 import { OrderEventType } from './events/order-event-type.ts';
 import type { PaymentRejectedEvent } from './events/payment-rejected.ts';
 import type { OrderShippedEvent } from './events/order-shipped.ts';
+import type { OrderDeliveredEvent } from './events/order-delivered.ts';
 
 export class Order {
   private constructor(
@@ -145,6 +146,28 @@ export class Order {
     return this;
   }
 
+  public deliver(input: { deliveredAt: Date }): Order {
+    if (this.status !== OrderStatus.SHIPPED) {
+      throw new Error('Only shipped orders can be delivered');
+    }
+
+    if (!this.id) {
+      throw new Error('Order ID is missing');
+    }
+
+    const event: OrderDeliveredEvent = {
+      type: OrderEventType.ORDER_DELIVERED,
+      data: {
+        orderId: this.id,
+        deliveredAt: input.deliveredAt.toISOString(),
+      },
+    };
+
+    this.raise(event);
+
+    return this;
+  }
+
   public getUncommittedChanges(): DomainEvent[] {
     return this.changes;
   }
@@ -167,6 +190,9 @@ export class Order {
         break;
       case OrderEventType.ORDER_SHIPPED:
         this.applyOrderShipped();
+        break;
+      case OrderEventType.ORDER_DELIVERED:
+        this.applyOrderDelivered();
         break;
       default:
         throw new Error(`Unknown Order event type: ${event.type}`);
@@ -197,5 +223,9 @@ export class Order {
 
   private applyOrderShipped(): void {
     this.status = OrderStatus.SHIPPED;
+  }
+
+  private applyOrderDelivered(): void {
+    this.status = OrderStatus.DELIVERED;
   }
 }
