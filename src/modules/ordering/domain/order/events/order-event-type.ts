@@ -3,4 +3,5 @@ export enum OrderEventType {
   PAYMENT_AUTHORIZED = 'PaymentAuthorized',
   PAYMENT_REJECTED = 'PaymentRejected',
   ORDER_SHIPPED = 'OrderShipped',
+  ORDER_DELIVERED = 'OrderDelivered',
 }

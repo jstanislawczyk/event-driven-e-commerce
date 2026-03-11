@@ -10,6 +10,7 @@ export async function buildOrderRoutes(
 
   router.post('/', controller.create.bind(controller));
   router.post('/:orderId/ship', controller.shipOrder.bind(controller));
+  router.post('/:orderId/deliver', controller.deliverOrder.bind(controller));
   router.post(
     '/:orderId/payment/authorize',
     controller.authorizePayment.bind(controller),

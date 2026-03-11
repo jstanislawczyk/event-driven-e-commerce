@@ -18,7 +18,8 @@ export class OrderReadEntity {
     | 'AWAITING_PAYMENT'
     | 'PAYMENT_AUTHORIZED'
     | 'PAYMENT_REJECTED'
-    | 'SHIPPED';
+    | 'SHIPPED'
+    | 'DELIVERED';
 
   @Column('decimal', { precision: 10, scale: 2 })
   totalAmount: number;
